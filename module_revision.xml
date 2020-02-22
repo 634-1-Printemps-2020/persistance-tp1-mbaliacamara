@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_revision" default="compile.module.revision">
+  <dirname property="module.revision.basedir" file="${ant.file.module_revision}"/>
+  
+  <property name="module.jdk.home.revision" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.revision" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.revision" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.revision" value="-encoding UTF-8 -source 1.8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="revision.output.dir" value="${module.revision.basedir}/out/production/Revision"/>
+  <property name="revision.testoutput.dir" value="${module.revision.basedir}/out/test/Revision"/>
+  
+  <path id="revision.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="revision.module.production.classpath">
+    <path refid="${module.jdk.classpath.revision}"/>
+  </path>
+  
+  <path id="revision.runtime.production.module.classpath">
+    <pathelement location="${revision.output.dir}"/>
+  </path>
+  
+  <path id="revision.module.classpath">
+    <path refid="${module.jdk.classpath.revision}"/>
+    <pathelement location="${revision.output.dir}"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+  
+  <path id="revision.runtime.module.classpath">
+    <pathelement location="${revision.testoutput.dir}"/>
+    <pathelement location="${revision.output.dir}"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.revision">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.revision">
+    <patternset refid="excluded.from.module.revision"/>
+  </patternset>
+  
+  <path id="revision.module.sourcepath">
+    <dirset dir="${module.revision.basedir}">
+      <include name="src/main/java"/>
+    </dirset>
+  </path>
+  
+  <path id="revision.module.test.sourcepath">
+    <dirset dir="${module.revision.basedir}">
+      <include name="src/test/java"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.revision" depends="compile.module.revision.production,compile.module.revision.tests" description="Compile module Revision"/>
+  
+  <target name="compile.module.revision.production" depends="register.custom.compilers" description="Compile module Revision; production classes">
+    <mkdir dir="${revision.output.dir}"/>
+    <javac2 destdir="${revision.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.revision}/javac">
+      <compilerarg line="${compiler.args.revision}"/>
+      <bootclasspath refid="revision.module.bootclasspath"/>
+      <classpath refid="revision.module.production.classpath"/>
+      <src refid="revision.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.revision"/>
+    </javac2>
+    
+    <copy todir="${revision.output.dir}">
+      <fileset dir="${module.revision.basedir}/src/main/java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.revision.tests" depends="register.custom.compilers,compile.module.revision.production" description="compile module Revision; test classes" unless="skip.tests">
+    <mkdir dir="${revision.testoutput.dir}"/>
+    <javac2 destdir="${revision.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.revision}/javac">
+      <compilerarg line="${compiler.args.revision}"/>
+      <bootclasspath refid="revision.module.bootclasspath"/>
+      <classpath refid="revision.module.classpath"/>
+      <src refid="revision.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.revision"/>
+    </javac2>
+    
+    <copy todir="${revision.testoutput.dir}">
+      <fileset dir="${module.revision.basedir}/src/test/java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.revision" description="cleanup module">
+    <delete dir="${revision.output.dir}"/>
+    <delete dir="${revision.testoutput.dir}"/>
+  </target>
+</project>
